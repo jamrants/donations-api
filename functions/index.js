@@ -1,6 +1,12 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const cors = require('cors')({ origin: 'https://donations.exposed' });
+const cors = require('cors')({
+  origin: [
+    'https://donations.exposed',
+    'http://localhost:8000',
+    /donations-exposed\.netlify\.app$/,
+  ],
+});
 
 admin.initializeApp();
 let db = admin.firestore();
