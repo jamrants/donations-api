@@ -17,11 +17,14 @@ def canData():
   with open(path, encoding='utf-8-sig') as f:
     collection = db.collection(u'postcode-income-ca')
     reader = csv.DictReader(f)
+    latest = list(collection.order_by(u'code', direction=firestore.Query.DESCENDING).limit(1).stream())[0].id
+    print(f'[Canada] Continuing from {latest}')
     for row in reader:
       # Filter out median income values
       if row['GEO_LEVEL'] != '2': continue
       if row['DIM: Profile of Forward Sortation Areas (2247)'] != 'Median total income of households in 2015 ($)': continue
       FSA = row['GEO_NAME']
+      if FSA <= latest: continue
       incomeStr = row['Dim: Sex (3): Member ID: [1]: Total - Sex']
       income = int(incomeStr if incomeStr != 'x' else 0)
       collection.document(FSA).set({
@@ -37,9 +40,12 @@ def usaData():
   with open(path, encoding='utf-8') as f:
     collection = db.collection(u'postcode-income-us')
     reader = csv.DictReader(f)
+    latest = list(collection.order_by(u'code', direction=firestore.Query.DESCENDING).limit(1).stream())[0].id
+    print(f'[USA] Continuing from {latest}')
     for row in reader:
       if row['NAME'][:5] != 'ZCTA5': continue
       ZCTA = row['NAME'][6:]
+      if ZCTA <= latest: continue
       incomeStr = re.sub('[^0-9]', '', row['S1903_C03_001E'])
       income = int(incomeStr if incomeStr != '' else 0)
       collection.document(ZCTA).set({
