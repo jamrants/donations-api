@@ -1,29 +1,26 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const express = require("express");
-const cors = require("cors");
 
 admin.initializeApp();
 let db = admin.firestore();
 
-const app = express();
-
-// setup cors
-// TODO: only allow from correct origin
-app.use(cors({ origin: true }));
-
-// parse json
-app.use(express.json());
-
-app.post("/donate/:id", (req, res) => {
-  let donationId = req.params.id;
+exports.donate = functions.https.onRequest((req, res) => {
+  let donationId = req.body.id;
   let donationAmount = req.body.amount;
-
   let donationRef = db.collection("donations").doc(donationId);
-  let increment = donationRef.update({
-    amount: admin.firestore.FieldValue.increment(donationAmount),
+  donationRef.get().then((docSnapshot) => {
+    if (docSnapshot.exists) {
+      donationRef.update({
+        amount: admin.firestore.FieldValue.increment(donationAmount),
+      });
+    } else {
+      donationRef.set({
+        amount: donationAmount,
+      });
+    }
+    res.status(200).end();
+    return;
+  }).catch((err) => {
+    res.status(500).json(err);
   });
 });
-
-// Expose Express API as a single Cloud Function:
-exports.widgets = functions.https.onRequest(app);
