@@ -45,7 +45,7 @@ exports.income = functions.https.onRequest((req, res) => {
       res.status(404).json({ error: 'Country not supported.' });
     } else {
       // FSAs for Canada (first three digits of postal code)
-      const postcode = country === 'CA' ? req.query.postcode.substring(0, 3) : res.query.postcode;
+      const postcode = country === 'CA' ? req.query.postcode.substring(0, 3) : req.query.postcode;
       db.collection(`postcode-income-${country.toLowerCase()}`)
         .doc(postcode)
         .get()
@@ -58,7 +58,7 @@ exports.income = functions.https.onRequest((req, res) => {
           return;
         })
         .catch((err) => {
-          res.status(500).json(err);
+          res.status(500).json({ error: err });
         });
     }
   });
