@@ -31,13 +31,13 @@ def canData():
       if FSA <= latest: continue
       incomeStr = row['Dim: Sex (3): Member ID: [1]: Total - Sex']
       income = int(incomeStr if incomeStr != 'x' else 0)
-      print(f'[Canada] Writing {FSA}...\r', end='')
+      print(f'[Canada] Writing {FSA}...')
       collection.document(FSA).set({
         'code': FSA,
         'income': income
       })
       new += 1
-    print(f'\n[Canada] Written {new} rows')
+    print(f'[Canada] Written {new} rows')
 
 # US ZIP Code Tabulation Areas
 # Source: Table S1903, American Community Survey 2018
@@ -59,13 +59,13 @@ def usaData():
       if ZCTA <= latest: continue
       incomeStr = re.sub('[^0-9]', '', row['S1903_C03_001E'])
       income = int(incomeStr if incomeStr != '' else 0)
-      print(f'[USA] Writing {ZCTA}...\r', end='')
+      print(f'[USA] Writing {ZCTA}...')
       collection.document(ZCTA).set({
         'code': ZCTA,
         'income': income
       })
       new += 1
-    print(f'\n[USA] Written {new} rows')
+    print(f'[USA] Written {new} rows')
 
 # UK Middle layer Super Output Areas
 # Source: Income estimates for small areas, England and Wales
@@ -95,13 +95,13 @@ def gbrData():
       MSOA = row['MSOA code']
       income = int(row['Total annual income (£)'].replace(',', ''))
       # print names so we know where we left off if error
-      print(f'[UK] Writing {row["MSOA name"]}...\r', end='')
+      print(f'[UK] Writing {row["MSOA name"]}...')
       collection.document(row['MSOA name']).set({
         'code': MSOA,
         'income': income
       })
       new += 1
-    print(f'\n[UK] Written {new} rows')
+    print(f'[UK] Written {new} rows')
 
 
 canData()
