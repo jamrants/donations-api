@@ -67,5 +67,44 @@ def usaData():
       new += 1
     print(f'\n[USA] Written {new} rows')
 
+# UK Middle layer Super Output Areas
+# Source: Income estimates for small areas, England and Wales
+# https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/smallareaincomeestimatesformiddlelayersuperoutputareasenglandandwales
+# Contains data from the Office for National Statistics licensed under the Open Government Licence v3.0.
+def gbrData():
+  path = 'raw/totalannualincome2018.csv'
+  with open(path, encoding='windows-1252') as f:
+    # skip first four lines
+    for i in range(4):
+      next(f)
+
+    collection = db.collection(u'postcode-income-gb')
+    reader = csv.DictReader(f)
+    new = 0
+    # set to last printed MSOA if error
+    failed = None
+    # failed = 'Portsmouth 007'
+    if failed:
+      print(f'[UK] Continuing from {failed}')
+    for row in reader:
+      if failed:
+        if row['MSOA name'] == failed:
+          failed = None
+        else:
+          continue
+      MSOA = row['MSOA code']
+      income = int(row['Total annual income (£)'].replace(',', ''))
+      # print names so we know where we left off if error
+      print(f'[UK] Writing {row["MSOA name"]}...\r', end='')
+      collection.document(row['MSOA name']).set({
+        'code': MSOA,
+        'income': income
+      })
+      new += 1
+    print(f'\n[UK] Written {new} rows')
+
+
 canData()
 usaData()
+# !Note! Can't do partial runs since data is not sorted
+gbrData()

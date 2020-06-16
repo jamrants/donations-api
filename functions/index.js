@@ -41,7 +41,7 @@ exports.income = functions.https.onRequest((req, res) => {
   cors(req, res, () => {
     const country = req.query.country;
     // implemented countries
-    if (!['CA', 'US'].includes(country)) {
+    if (!['CA', 'US', 'GB'].includes(country)) {
       res.status(404).json({ error: 'Country not supported.' });
     } else {
       // FSAs for Canada (first three digits of postal code)
