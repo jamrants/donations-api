@@ -17,8 +17,12 @@ def canData():
   with open(path, encoding='utf-8-sig') as f:
     collection = db.collection(u'postcode-income-ca')
     reader = csv.DictReader(f)
-    latest = list(collection.order_by(u'code', direction=firestore.Query.DESCENDING).limit(1).stream())[0].id
-    print(f'[Canada] Continuing from {latest}')
+    latest = ''
+    latestQuery = list(collection.order_by(u'code', direction=firestore.Query.DESCENDING).limit(1).stream())
+    if len(latestQuery) > 0:
+      latest = latestQuery[0].id
+      print(f'[Canada] Continuing from {latest}')
+    new = 0
     for row in reader:
       # Filter out median income values
       if row['GEO_LEVEL'] != '2': continue
@@ -27,10 +31,13 @@ def canData():
       if FSA <= latest: continue
       incomeStr = row['Dim: Sex (3): Member ID: [1]: Total - Sex']
       income = int(incomeStr if incomeStr != 'x' else 0)
+      print(f'[Canada] Writing {FSA}...\r', end='')
       collection.document(FSA).set({
         'code': FSA,
         'income': income
       })
+      new += 1
+    print(f'\n[Canada] Written {new} rows')
 
 # US ZIP Code Tabulation Areas
 # Source: Table S1903, American Community Survey 2018
@@ -40,18 +47,25 @@ def usaData():
   with open(path, encoding='utf-8') as f:
     collection = db.collection(u'postcode-income-us')
     reader = csv.DictReader(f)
-    latest = list(collection.order_by(u'code', direction=firestore.Query.DESCENDING).limit(1).stream())[0].id
-    print(f'[USA] Continuing from {latest}')
+    latest = ''
+    latestQuery = list(collection.order_by(u'code', direction=firestore.Query.DESCENDING).limit(1).stream())
+    if len(latestQuery) > 0:
+      latest = latestQuery[0].id
+      print(f'[USA] Continuing from {latest}')
+    new = 0
     for row in reader:
       if row['NAME'][:5] != 'ZCTA5': continue
       ZCTA = row['NAME'][6:]
       if ZCTA <= latest: continue
       incomeStr = re.sub('[^0-9]', '', row['S1903_C03_001E'])
       income = int(incomeStr if incomeStr != '' else 0)
+      print(f'[USA] Writing {ZCTA}...\r', end='')
       collection.document(ZCTA).set({
         'code': ZCTA,
         'income': income
       })
+      new += 1
+    print(f'\n[USA] Written {new} rows')
 
 canData()
 usaData()
