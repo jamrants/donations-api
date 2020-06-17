@@ -13,29 +13,51 @@ let db = admin.firestore();
 
 exports.donate = functions.https.onRequest((req, res) => {
   cors(req, res, () => {
-    let donationId = req.body.id;
-    let donationAmount = req.body.amount;
-    let donationRef = db.collection("donations").doc(donationId);
-    donationRef
-      .get()
-      .then((docSnapshot) => {
-        if (docSnapshot.exists) {
-          donationRef.update({
-            amount: admin.firestore.FieldValue.increment(donationAmount),
-            count: admin.firestore.FieldValue.increment(1),
-          });
-        } else {
-          donationRef.set({
-            amount: donationAmount,
-            count: 1,
-          });
+    switch (req.method) {
+      case "GET":
+        {
+          let donationsRef = db.collection("donations");
+          donationsRef
+            .get()
+            .then(snapshot => {
+              res.status(200).json(snapshot);
+              return;
+            })
+            .catch((err) => {
+              console.log("Error getting documents", err);
+              res.status(500).json(err);
+            });
         }
-        res.status(200).end();
-        return;
-      })
-      .catch((err) => {
-        res.status(500).json(err);
-      });
+        break;
+
+      case "POST":
+        {
+          let donationId = req.body.id;
+          let donationAmount = req.body.amount;
+          let donationRef = db.collection("donations").doc(donationId);
+          donationRef
+            .get()
+            .then((docSnapshot) => {
+              if (docSnapshot.exists) {
+                donationRef.update({
+                  amount: admin.firestore.FieldValue.increment(donationAmount),
+                  count: admin.firestore.FieldValue.increment(1),
+                });
+              } else {
+                donationRef.set({
+                  amount: donationAmount,
+                  count: 1,
+                });
+              }
+              res.status(200).end();
+              return;
+            })
+            .catch((err) => {
+              res.status(500).json(err);
+            });
+        }
+        break;
+    }
   });
 });
 
