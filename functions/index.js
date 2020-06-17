@@ -5,6 +5,7 @@ const cors = require("cors")({
     "https://donations.exposed",
     "http://localhost:8000",
     /donations-exposed\.netlify\.app$/,
+    "airtable.com",
   ],
 });
 
